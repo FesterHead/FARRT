@@ -79,81 +79,61 @@ echo -e $TEXT_RESET
 ## Add a Samba network drive:
 
 1. Install the necessary packages:
-   ```shell
-   sudo apt update && sudo apt install cifs-utils
-   ```
+```shell
+sudo apt update && sudo apt install cifs-utils
+```
 
 2. Create a directory where you want to mount the Samba network drive for the data:
-   ```shell
-   sudo mkdir /mnt/data
-   ```
+```shell
+sudo mkdir /mnt/data
+```
 
 3. Open a text editor with administrative privileges to create a credentials file that will store the Samba login information:
-   ```shell
-   sudo mkdir /etc/samba
-   sudo vi /etc/samba/credentials
-   ```
+```shell
+sudo mkdir /etc/samba && sudo vi /etc/samba/credentials
+```
 
 4. In the text editor, add the following lines, replacing `USERNAME` and `PASSWORD` with your Samba login credentials:
-   ```shell
-   username=USERNAME
-   password=PASSWORD
-   ```
+```shell
+username=USERNAME
+password=PASSWORD
+```
 
 5. Save/Exit the text editor.
 
 6. Secure the credentials file by restricting access to the root user only:
-   ```shell
-   sudo chmod 600 /etc/samba/credentials
-   ```
+```shell
+sudo chmod 600 /etc/samba/credentials
+```
 
 7. Open the `/etc/fstab` file:
-   ```shell
-   sudo vi /etc/fstab
-   ```
+```shell
+sudo vi /etc/fstab
+```
 
 8. Add the following to define the mount point for the Samba data network drive:
-   ```shell
-   //NAS-NAME-OR-IP/data /mnt/data cifs credentials=/etc/samba/credentials,iocharset=utf8,gid=1003,uid=1000,file_mode=0777,dir_mode=0777 0 0
-   ```
+```shell
+//NAS-NAME-OR-IP/data /mnt/data cifs credentials=/etc/samba/credentials,iocharset=utf8,gid=1003,uid=1000,file_mode=0777,dir_mode=0777 0 0
+```
 
 9. Save/Exit the editor.
 
 10. Mount the Samba network drive:
-    ```shell
-    sudo systemctl daemon-reload
-
-    sudo mount -a
-    ```
+ ```shell
+sudo systemctl daemon-reload && sudo mount -a
+ ```
 
 11. You should now be able to access the Samba network drive at `/mnt/data`.
 
 Create the Docker app directory and folders and assign privs to your user and group:
 ```shell
-sudo mkdir /mnt/docker /mnt/docker/services
-cd /mnt/docker/services
-sudo mkdir bazarr diun duckdns emby embystat heimdall jellyseerr organizr plex prowlarr radarr sabnzbd sonarr swag transmission-openvpn transmission-rush
+sudo mkdir /mnt/docker /mnt/docker/services && cd /mnt/docker/services
+```
+```shell
+sudo mkdir bazarr diun duckdns emby heimdall jellyseerr plex prowlarr radarr readarr sabnzbd sonarr swag transmission-openvpn transmission-rush
+```
+```shell
 sudo chown -R <user>:<group> /mnt/docker/services
-
-ll
-
-# Abbreviated output
-bazarr/
-diun/
-duckdns/
-emby/
-embystat/
-heimdall/
-jellyseerr/
-organizr/
-plex/
-prowlarr/
-radarr/
-sabnzbd/
-sonarr/
-swag/
-transmission-openvpn/
-transmission-rush/
 ```
 
 Need a username and group?  Try use `festerhead:iscool`, can't go wrong.
@@ -161,7 +141,8 @@ Need a username and group?  Try use `festerhead:iscool`, can't go wrong.
 Find out your `uid` and `pid` to use in the `.env` file:
 ```shell
 id
-
+```
+```shell
 # portion of the output for username festerhead and group iscool
 uid=1000(festerhead) gid=1003(iscool)
 ```
@@ -220,9 +201,7 @@ docker-ce:
 
 #### Really Install Docker.
 ```shell
-sudo apt install docker-ce
-sudo systemctl enable docker
-sudo systemctl status docker
+sudo apt install docker-ce && sudo systemctl enable docker && sudo systemctl status docker
 ```
 
 Configure sudo permissions for Docker
@@ -238,7 +217,8 @@ docker --version
 Try it out:
 ```shell
 docker run hello-world
-
+```
+```shell
 # Sample output
 Hello from Docker!
 This message shows that your installation appears to be working correctly.
@@ -260,7 +240,8 @@ sudo chmod +x /usr/local/bin/docker-compose
 Verify the installation
 ```shell
 sudo docker-compose --version
-
+```
+```shell
 # Sample output
 Docker Compose version v2.18.1
 ```
@@ -310,8 +291,7 @@ SWAG_EXTRA_DOMAINS=******
 ## Install services
 ```shell
 docker-compose pull <name>
-docker-compose up -d <<name>
-docker logs -f <name>
+docker-compose up -d <name>
 ```
 
 See also: `helpful-commands.md`
@@ -320,11 +300,6 @@ If need to change service:
 ```shell
 docker stop <name>
 docker rm <name>
-```
-
-## Did this prior to swag configuration, it might not be needed:
-```shell
-docker network create lsio
 ```
 
 ## Services on LAN IP or subdomains or subfolders
@@ -352,16 +327,9 @@ Also, you can add allow/block directives to the server or location blocks.  To r
     deny all;
 ```
 
-Personally, I use the hostname, browser bookmarks, [1Password](https://1password.com/), and Organizr/Heimdall.
+Personally, I use the hostname, browser bookmarks, [1Password](https://1password.com/), and Heimdall.
 
 Find out what works for you.
-
-Change hostname and persist after reboot.  Will take a few minutes to be used in other LAN machines.
-```shell
-sudo vi /etc/cloud/cloud.cfg  # set the parameter preserve_hostname from false to true
-sudo vi /etc/hostname         # change name to farrt
-sudo reboot now
-```
 
 # Service configuration
 In order to have a portable configuration, recommend to use the following:
@@ -372,3 +340,10 @@ In order to have a portable configuration, recommend to use the following:
 Moving one, more, or all Docker services to a different machine on the same LAN IP is 'easy'.  Make a zip of `/mnt/docker/services` and unzip on the new target using the same path.
 
 For a LAN IP range change, edit this projects `.env` and the NGINX configuration in `/mnt/docker/services/swag/nginx/site-confs/default.conf` if you've used allow/deny.
+
+# Mini PC (Beelink S12 Pro) Notes
+Error running `docker run hello-world`
+```shell
+docker: permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Post "http://%2Fvar%2Frun%2Fdocker.sock/v1.24/containers/create": dial unix /var/run/docker.sock: connect: permission denied.
+```
+This was after `sudo usermod -aG docker <user>` too.  Decided that `sudo` for docker and docker-compose is going to be OK.

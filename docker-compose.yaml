@@ -2,3 +2,487 @@ version: "3.8"
 services:
     hello-world:
         image: hello-world
+    diun:
+        container_name: diun
+        image: crazymax/diun:latest
+        restart: unless-stopped
+        labels:
+            - "containermon.enable=true"
+            - "diun.enable=true"
+        command: serve
+        volumes:
+            - "${SERVICE_DIR}/diun:/data"
+            - "/var/run/docker.sock:/var/run/docker.sock"
+        #healthcheck:   wget calls result in zombie processes
+        #    test: wget https://${SWAG_URL} -qO /dev/null || exit 1
+        #    interval: 60s
+        #    retries: 5
+        #    start_period: 60s
+        #    timeout: 10s
+        environment:
+            - "TZ=${TZ}"
+            - "LOG_LEVEL=info"
+            - "LOG_JSON=false"
+            - "DIUN_WATCH_WORKERS=20"
+            - "DIUN_WATCH_SCHEDULE=0 */6 * * *"
+            - "DIUN_WATCH_JITTER=30s"
+            - "DIUN_PROVIDERS_DOCKER=true"
+            - "DIUN_NOTIF_SLACK_WEBHOOKURL=https://hooks.slack.com/services/${SLACK_HOOK}"
+            - "DIUN_NOTIF_SLACK_RENDERFIELDS=true"
+            - "DIUN_NOTIF_SLACK_TEMPLATEBODY=Docker tag {{ if .Entry.Image.HubLink }}<{{ .Entry.Image.HubLink }}|`{{ .Entry.Image }}`>{{ else }}`{{ .Entry.Image }}`{{ end }}  {{ if (eq .Entry.Status new) }}available{{ else }}updated{{ end }}."
+    container-mon:
+        container_name: container-mon
+        image: ghcr.io/rafhaanshah/container-mon:latest
+        restart: unless-stopped
+        depends_on:
+            - "diun"
+        labels:
+            - "containermon.enable=true"
+            - "diun.enable=true"
+        volumes:
+            - "/var/run/docker.sock:/var/run/docker.sock"
+        #healthcheck:   wget calls result in zombie processes
+        #    test: wget https://${SWAG_URL} -qO /dev/null || exit 1
+        #    interval: 60s
+        #    retries: 5
+        #    start_period: 60s
+        #    timeout: 10s
+        environment:
+            - "CONTAINERMON_FAIL_LIMIT=1"
+            - "CONTAINERMON_CRON=*/5 * * * *"
+            - "CONTAINERMON_USE_LABELS=true"
+            - "CONTAINERMON_NOTIFY_HEALTHY=true"
+            - "CONTAINERMON_CHECK_STOPPED=false"
+            - "CONTAINERMON_NOTIFICATION_URL=slack://hook:${SLACK_HOOK}@webhook?BotName=containermon"
+    transmission-openvpn:
+        container_name: transmission-openvpn
+        image: haugene/transmission-openvpn:4.1
+        restart: always
+        depends_on:
+            - "diun"
+        labels:
+            - "containermon.enable=true"
+            - "diun.enable=false"
+        ports:
+            - "9099:9099"
+        devices:
+            - "/dev/net/tun"
+        volumes:
+            - "${SERVICE_DIR}/transmission-openvpn:/config"
+            - "${DATA_DIR}/torrents-vpn:/downloads"
+        logging:
+            driver: json-file
+            options:
+                max-size: 10m
+        cap_add:
+            - "NET_ADMIN"
+        environment:
+            - "PGID=${PGID}"
+            - "PUID=${PUID}"
+            - "TZ=${TZ}"
+            - "UMASK=${UMASK}"
+            - "OPENVPN_PROVIDER=${OPENVPN_PROVIDER}"
+            - "OPENVPN_CONFIG=${OPENVPN_CONFIG}"
+            - "OPENVPN_USERNAME=${OPENVPN_USERNAME}"
+            - "OPENVPN_PASSWORD=${OPENVPN_PASSWORD}"
+            - "LOCAL_NETWORK=${LOCAL_NETWORK}"
+            - "OPENVPN_OPTS=--inactive 3600 --ping 10 --ping-exit 60 --mssfix 1460 --mute-replay-warnings"
+            - "TRANSMISSION_RATIO_LIMIT=0"
+            - "TRANSMISSION_RATIO_LIMIT_ENABLED=true"
+            - "TRANSMISSION_IDLE_SEEDING_LIMIT=2"
+            - "TRANSMISSION_IDLE_SEEDING_LIMIT_ENABLED=true"
+            - "TRANSMISSION_DOWNLOAD_DIR=/downloads/complete"
+            - "TRANSMISSION_INCOMPLETE_DIR=/downloads/incomplete"
+            - "TRANSMISSION_UPLOAD_LIMIT=250"
+            - "TRANSMISSION_UPLOAD_LIMIT_ENABLED=true"
+            - "TRANSMISSION_SPEED_LIMIT_UP=250"
+            - "TRANSMISSION_SPEED_LIMIT_UP_ENABLED=true"
+            - "TRANSMISSION_WEB_UI=flood-for-transmission"
+            - "TRANSMISSION_SCRAPE_PAUSED_TORRENTS_ENABLED=false"
+            - "TRANSMISSION_MAX_PEERS_GLOBAL=500"
+            - "TRANSMISSION_RPC_PORT=9099"
+    transmission-rush:
+        container_name: transmission-rush
+        image: lscr.io/linuxserver/transmission:latest
+        restart: unless-stopped
+        depends_on:
+            - "diun"
+            - "container-mon"
+        labels:
+            - "containermon.enable=true"
+            - "diun.enable=true"
+        ports:
+            - "9091:9091"
+            - "51413:51413"
+            - "51413:51413/udp"
+        volumes:
+            - "${SERVICE_DIR}/transmission-rush:/config"
+            - "${DATA_DIR}/torrents-rush:/downloads"
+        healthcheck:
+            test: curl --fail http://localhost:9091 || exit 1
+            interval: 60s
+            retries: 5
+            start_period: 60s
+            timeout: 10s
+        environment:
+            - "PGID=${PGID}"
+            - "PUID=${PUID}"
+            - "TZ=${TZ}"
+            - "UMASK=${UMASK}"
+    sabnzbd:
+        container_name: sabnzbd
+        image: lscr.io/linuxserver/sabnzbd:latest
+        restart: unless-stopped
+        depends_on:
+            - "diun"
+            - "container-mon"
+        labels:
+            - "containermon.enable=true"
+            - "diun.enable=true"
+        ports:
+            - "8080:8080"
+            - "9090:9090"
+        volumes:
+            - "${SERVICE_DIR}/sabnzbd:/config"
+            - "${DATA_DIR}/usenet:/data/usenet"
+        healthcheck:
+            test: curl --fail http://localhost:8080 || exit 1
+            interval: 60s
+            retries: 5
+            start_period: 60s
+            timeout: 10s
+        environment:
+            - "PGID=${PGID}"
+            - "PUID=${PUID}"
+            - "TZ=${TZ}"
+            - "UMASK=${UMASK}"
+    flaresolverr:
+        container_name: flaresolverr
+        image: ghcr.io/flaresolverr/flaresolverr:latest
+        restart: unless-stopped
+        depends_on:
+            - "diun"
+        labels:
+            - "containermon.enable=true"
+            - "diun.enable=true"
+        ports:
+            - "8191:8191"
+        healthcheck:
+            test: curl --fail http://localhost:8191 || exit 1
+            interval: 60s
+            retries: 5
+            start_period: 60s
+            timeout: 10s
+        environment:
+            - "PGID=${PGID}"
+            - "PUID=${PUID}"
+            - "TZ=${TZ}"
+            - "UMASK=${UMASK}"
+            - "LOG_LEVEL=info"
+            - "LOG_HTML=false"
+            - "CAPTCHA_SOLVER=none"
+    prowlarr:
+        container_name: prowlarr
+        image: lscr.io/linuxserver/prowlarr:latest
+        restart: unless-stopped
+        depends_on:
+            - "diun"
+            - "container-mon"
+        labels:
+            - "containermon.enable=true"
+            - "diun.enable=true"
+        ports:
+            - "9696:9696"
+        healthcheck:
+            test: curl --fail http://localhost:9696 || exit 1
+            interval: 60s
+            retries: 5
+            start_period: 60s
+            timeout: 10s
+        environment:
+            - "PGID=${PGID}"
+            - "PUID=${PUID}"
+            - "TZ=${TZ}"
+            - "UMASK=${UMASK}"
+    emby:
+        container_name: emby
+        image: lscr.io/linuxserver/emby:latest
+        restart: unless-stopped
+        depends_on:
+            - "diun"
+            - "container-mon"
+        labels:
+            - "containermon.enable=true"
+            - "diun.enable=true"
+        ports:
+            - "8096:8096"
+            - "8920:8920"
+        volumes:
+            - "${SERVICE_DIR}/emby:/config"
+            - "${DATA_DIR}:/data"
+            - "${SERVICE_DIR}/swag/etc:/swag-ssl"
+        healthcheck:
+            test: curl --fail http://localhost:8096 || exit 1
+            interval: 60s
+            retries: 5
+            start_period: 300s
+            timeout: 10s
+        environment:
+            - "PGID=${PGID}"
+            - "PUID=${PUID}"
+            - "TZ=${TZ}"
+            - "UMASK=${UMASK}"
+        devices:
+            - /dev/dri:/dev/dri
+    plex:
+        container_name: plex
+        image: lscr.io/linuxserver/plex:latest
+        network_mode: host
+        restart: unless-stopped
+        depends_on:
+            - "diun"
+            - "container-mon"
+        labels:
+            - "containermon.enable=false"     # Not monitoring at this time
+            - "diun.enable=true"
+        ports:
+            - "32400:32400"
+        volumes:
+            - "${SERVICE_DIR}/plex:/config"
+            - "${DATA_DIR}:/data"
+        environment:
+            - "PGID=${PGID}"
+            - "PUID=${PUID}"
+            - "TZ=${TZ}"
+            - "UMASK=${UMASK}"
+            - "VERSION=docker"
+    bazarr:
+        container_name: bazarr
+        image: lscr.io/linuxserver/bazarr:latest
+        restart: unless-stopped
+        depends_on:
+            - "diun"
+            - "container-mon"
+        labels:
+            - "containermon.enable=true"
+            - "diun.enable=true"
+        ports:
+            - "6767:6767"
+        volumes:
+            - "${SERVICE_DIR}/bazarr:/config"
+            - "${DATA_DIR}:/data"
+        healthcheck:
+            test: curl --fail http://localhost:6767 || exit 1
+            interval: 60s
+            retries: 5
+            start_period: 60s
+            timeout: 10s
+        environment:
+            - "PGID=${PGID}"
+            - "PUID=${PUID}"
+            - "TZ=${TZ}"
+            - "UMASK=${UMASK}"
+    radarr:
+        container_name: radarr
+        image: lscr.io/linuxserver/radarr:latest
+        restart: unless-stopped
+        depends_on:
+            - "diun"
+            - "container-mon"
+        labels:
+            - "containermon.enable=true"
+            - "diun.enable=true"
+        ports:
+            - "7878:7878"
+        volumes:
+            - "${SERVICE_DIR}/radarr:/config"
+            - "${DATA_DIR}:/data"
+        healthcheck:
+            test: curl --fail http://localhost:7878 || exit 1
+            interval: 60s
+            retries: 5
+            start_period: 60s
+            timeout: 10s
+        environment:
+            - "PGID=${PGID}"
+            - "PUID=${PUID}"
+            - "TZ=${TZ}"
+            - "UMASK=${UMASK}"
+    sonarr:
+        container_name: sonarr
+        image: lscr.io/linuxserver/sonarr:latest
+        restart: unless-stopped
+        depends_on:
+            - "diun"
+            - "container-mon"
+        labels:
+            - "containermon.enable=true"
+            - "diun.enable=true"
+        ports:
+            - "8989:8989"
+        volumes:
+            - "${SERVICE_DIR}/sonarr:/config"
+            - "${DATA_DIR}:/data"
+        healthcheck:
+            test: curl --fail http://localhost:8989 || exit 1
+            interval: 60s
+            retries: 5
+            start_period: 60s
+            timeout: 10s
+        environment:
+            - "PGID=${PGID}"
+            - "PUID=${PUID}"
+            - "TZ=${TZ}"
+            - "UMASK=${UMASK}"
+    readarr:
+        container_name: readarr
+        image: lscr.io/linuxserver/readarr:develop
+        restart: unless-stopped
+        depends_on:
+            - "diun"
+            - "container-mon"
+        labels:
+            - "containermon.enable=true"
+            - "diun.enable=true"
+        ports:
+            - "8787:8787"
+        volumes:
+            - "${SERVICE_DIR}/readarr:/config"
+            - "${DATA_DIR}:/data"
+        healthcheck:
+            test: curl --fail http://localhost:8787 || exit 1
+            interval: 60s
+            retries: 5
+            start_period: 60s
+            timeout: 10s
+        environment:
+            - "PGID=${PGID}"
+            - "PUID=${PUID}"
+            - "TZ=${TZ}"
+            - "UMASK=${UMASK}"
+    jellyseerr:
+        container_name: jellyseerr
+        image: fallenbagel/jellyseerr:latest
+        restart: unless-stopped
+        depends_on:
+            - "diun"
+            - "container-mon"
+        labels:
+            - "containermon.enable=false"
+            - "diun.enable=true"
+        ports:
+            - "5055:5055"
+        volumes:
+            - "${SERVICE_DIR}/jellyseerr:/app/config"
+        #healthcheck:   wget calls result in zombie processes
+        #     test: wget http://localhost:5055/api/v1/status -qO /dev/null || exit 1
+        #     interval: 60s
+        #     retries: 5
+        #     start_period: 60s
+        #     timeout: 10s
+        environment:
+            - "LOG_LEVEL=info"
+            - "TZ=${TZ}"
+            - "JELLYFIN_TYPE=emby"
+    heimdall:
+        container_name: heimdall
+        image: lscr.io/linuxserver/heimdall:latest
+        restart: unless-stopped
+        depends_on:
+            - "diun"
+            - "container-mon"
+        labels:
+            - "containermon.enable=true"
+            - "diun.enable=true"
+        ports:
+            - 7776:80
+        volumes:
+            - "${SERVICE_DIR}/heimdall:/config"
+        healthcheck:
+            test: curl --fail http://localhost:80 || exit 1
+            interval: 60s
+            retries: 5
+            start_period: 60s
+            timeout: 10s
+        environment:
+            - "PGID=${PGID}"
+            - "PUID=${PUID}"
+            - "TZ=${TZ}"
+            - "UMASK=${UMASK}"
+    duckdns:
+        container_name: duckdns
+        image: lscr.io/linuxserver/duckdns:latest
+        restart: unless-stopped
+        depends_on:
+            - "diun"
+            - "container-mon"
+        labels:
+            - "containermon.enable=true"
+            - "diun.enable=true"
+        volumes:
+            - "${SERVICE_DIR}/duckdns:/config"
+        healthcheck:
+            test: curl --fail https://${SWAG_URL} || exit 1
+            interval: 60s
+            retries: 5
+            start_period: 60s
+            timeout: 10s
+        environment:
+            - "PGID=${PGID}"
+            - "PUID=${PUID}"
+            - "TZ=${TZ}"
+            - "UMASK=${UMASK}"
+            - "SUBDOMAINS=${DUCKDNS_SUBDOMAINS}"
+            - "TOKEN=${DUCKDNS_TOKEN}"
+            - "LOG_FILE=false" #optional
+    swag:
+        container_name: swag
+        image: lscr.io/linuxserver/swag:latest
+        restart: unless-stopped
+        depends_on:
+            - "diun"
+            - "container-mon"
+        labels:
+            - "containermon.enable=true"
+            - "diun.enable=true"
+        ports:
+            - "443:443"
+            - "80:80"
+        cap_add:
+            - "NET_ADMIN"
+        volumes:
+            - "${SERVICE_DIR}/swag:/config"
+        healthcheck:
+            test: curl --fail http://localhost:80 || exit 1
+            interval: 60s
+            retries: 5
+            start_period: 60s
+            timeout: 10s
+        environment:
+            - "PGID=${PGID}"
+            - "PUID=${PUID}"
+            - "TZ=${TZ}"
+            - "UMASK=${UMASK}"
+            - "URL=${SWAG_URL}"
+            - "VALIDATION=${SWAG_VALIDATION}"
+            - "SUBDOMAINS=${SWAG_SUBDOMAINS}"
+            - "DUCKDNSTOKEN=${DUCKDNS_TOKEN}"
+            - "EMAIL=${SWAG_EMAIL}"
+            - "EXTRA_DOMAINS=${SWAG_EXTRA_DOMAINS}"
+    adguardhome:
+        container_name: adguardhome
+        image: adguard/adguardhome:latest
+        restart: unless-stopped
+        depends_on:
+            - "diun"
+        labels:
+            - "containermon.enable=false"
+            - "diun.enable=true"
+        ports:
+            - "53:53/tcp"
+            - "53:53/udp"
+            - "3000:3000/tcp"
+            - "9080:9080/tcp"
+        volumes:
+            - "${SERVICE_DIR}/adguardhome/work:/opt/adguardhome/work"
+            - "${SERVICE_DIR}/adguardhome/conf:/opt/adguardhome/conf"

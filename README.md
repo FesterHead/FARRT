@@ -1,4 +1,4 @@
-# FAMMS
+# FARRT
 ## FesterHead's ARR Toolset
 
 Some guides I used to determine this setup:
@@ -35,13 +35,12 @@ Folder structure on the host computer for service data and this Github repo.
 │       ├── diun
 │       ├── duckdns
 │       ├── emby
-│       ├── embystat
 │       ├── heimdall
 │       ├── jellyseerr
-│       ├── organizr
 │       ├── plex
 │       ├── prowlarr
 │       ├── radarr
+│       ├── readarr
 │       ├── sabnzbd
 │       ├── sonarr
 │       ├── swag
@@ -69,7 +68,7 @@ Read the docs!
 - http://haugene.github.io/docker-transmission-openvpn/
 - https://github.com/haugene/docker-transmission-openvpn
 
-Only version I could get PIA to port forward; please don't break it upstream PIA!
+4.1 is the only version I could get PIA to port forward; please don't break it upstream PIA!
 
 ## transmission-rush:
 - https://hub.docker.com/r/linuxserver/transmission
@@ -101,11 +100,6 @@ Used for Rush torrenting from http://www.dimeadozen.org/. Port forward 51413 fro
 
 SSL is managed by the swag container.
 
-## embystat:
-https://hub.docker.com/r/linuxserver/embystat
-https://docs.linuxserver.io/images/docker-embystat
-https://github.com/linuxserver/docker-embystat
-
 ## plex:
 - https://hub.docker.com/r/linuxserver/plex
 - https://docs.linuxserver.io/images/docker-plex
@@ -126,6 +120,10 @@ Including here but not planning on loading it up, maybe later.
 - https://github.com/linuxserver/docker-radarr
 - https://trash-guides.info/Radarr/
 
+## readarr:
+- https://hub.docker.com/r/linuxserver/readarr
+- https://github.com/linuxserver/docker-readarr
+
 ## sonarr:
 - https://hub.docker.com/r/linuxserver/sonarr
 - https://docs.linuxserver.io/images/docker-sonarr
@@ -135,10 +133,6 @@ Including here but not planning on loading it up, maybe later.
 ## jellyseerr:
 - https://hub.docker.com/r/fallenbagel/jellyseerr
 - https://github.com/Fallenbagel/jellyseerr
-
-## organizr:
-- https://hub.docker.com/r/organizr/organizr
-- https://github.com/causefx/Organizr/
 
 ## heimdall:
 https://hub.docker.com/r/linuxserver/heimdall/
