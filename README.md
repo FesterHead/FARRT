@@ -35,12 +35,11 @@ Folder structure on the host computer for service data and this Github repo.
 │       ├── diun
 │       ├── duckdns
 │       ├── emby
-│       ├── heimdall
+│       ├── homepage
 │       ├── jellyseerr
 │       ├── plex
 │       ├── prowlarr
 │       ├── radarr
-│       ├── readarr
 │       ├── sabnzbd
 │       ├── sonarr
 │       ├── swag
@@ -119,10 +118,6 @@ Including here but not planning on loading it up, maybe later.
 - https://docs.linuxserver.io/images/docker-radarr
 - https://github.com/linuxserver/docker-radarr
 - https://trash-guides.info/Radarr/
-
-## readarr:
-- https://hub.docker.com/r/linuxserver/readarr
-- https://github.com/linuxserver/docker-readarr
 
 ## sonarr:
 - https://hub.docker.com/r/linuxserver/sonarr

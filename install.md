@@ -130,7 +130,7 @@ Create the Docker app directory and folders and assign privs to your user and gr
 sudo mkdir /mnt/docker /mnt/docker/services && cd /mnt/docker/services
 ```
 ```shell
-sudo mkdir bazarr diun duckdns emby heimdall jellyseerr plex prowlarr radarr readarr sabnzbd sonarr swag transmission-openvpn transmission-rush
+sudo mkdir bazarr diun duckdns emby homepage jellyseerr plex prowlarr radarr sabnzbd sonarr swag transmission-openvpn transmission-rush
 ```
 ```shell
 sudo chown -R <user>:<group> /mnt/docker/services
@@ -327,8 +327,6 @@ Also, you can add allow/block directives to the server or location blocks.  To r
     deny all;
 ```
 
-Personally, I use the hostname, browser bookmarks, [1Password](https://1password.com/), and Heimdall.
-
 Find out what works for you.
 
 # Service configuration
@@ -338,12 +336,3 @@ In order to have a portable configuration, recommend to use the following:
 * `http://fart:<port>` to connect to services from LAN IPs
 
 Moving one, more, or all Docker services to a different machine on the same LAN IP is 'easy'.  Make a zip of `/mnt/docker/services` and unzip on the new target using the same path.
-
-For a LAN IP range change, edit this projects `.env` and the NGINX configuration in `/mnt/docker/services/swag/nginx/site-confs/default.conf` if you've used allow/deny.
-
-# Mini PC (Beelink S12 Pro) Notes
-Error running `docker run hello-world`
-```shell
-docker: permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Post "http://%2Fvar%2Frun%2Fdocker.sock/v1.24/containers/create": dial unix /var/run/docker.sock: connect: permission denied.
-```
-This was after `sudo usermod -aG docker <user>` too.  Decided that `sudo` for docker and docker-compose is going to be OK.

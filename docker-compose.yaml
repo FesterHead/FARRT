@@ -13,7 +13,7 @@ services:
         volumes:
             - "${SERVICE_DIR}/diun:/data"
             - "/var/run/docker.sock:/var/run/docker.sock"
-        #healthcheck:   wget calls result in zombie processes
+        #healthcheck:
         #    test: wget https://${SWAG_URL} -qO /dev/null || exit 1
         #    interval: 60s
         #    retries: 5
@@ -29,7 +29,6 @@ services:
             - "DIUN_PROVIDERS_DOCKER=true"
             - "DIUN_NOTIF_SLACK_WEBHOOKURL=https://hooks.slack.com/services/${SLACK_HOOK}"
             - "DIUN_NOTIF_SLACK_RENDERFIELDS=true"
-            - "DIUN_NOTIF_SLACK_TEMPLATEBODY=Docker tag {{ if .Entry.Image.HubLink }}<{{ .Entry.Image.HubLink }}|`{{ .Entry.Image }}`>{{ else }}`{{ .Entry.Image }}`{{ end }}  {{ if (eq .Entry.Status new) }}available{{ else }}updated{{ end }}."
     container-mon:
         container_name: container-mon
         image: ghcr.io/rafhaanshah/container-mon:latest
@@ -41,7 +40,7 @@ services:
             - "diun.enable=true"
         volumes:
             - "/var/run/docker.sock:/var/run/docker.sock"
-        #healthcheck:   wget calls result in zombie processes
+        #healthcheck:
         #    test: wget https://${SWAG_URL} -qO /dev/null || exit 1
         #    interval: 60s
         #    retries: 5
@@ -215,8 +214,8 @@ services:
             - "containermon.enable=true"
             - "diun.enable=true"
         ports:
-            - "8096:8096"
-            - "8920:8920"
+            - "8096:8096"     # http port
+            - "8920:8920"     # https port
         volumes:
             - "${SERVICE_DIR}/emby:/config"
             - "${DATA_DIR}:/data"
@@ -233,7 +232,7 @@ services:
             - "TZ=${TZ}"
             - "UMASK=${UMASK}"
         devices:
-            - /dev/dri:/dev/dri
+            - "/dev/dri:/dev/dri"
     plex:
         container_name: plex
         image: lscr.io/linuxserver/plex:latest
@@ -333,33 +332,6 @@ services:
             - "PGID=${PGID}"
             - "PUID=${PUID}"
             - "TZ=${TZ}"
-            - "UMASK=${UMASK}"
-    readarr:
-        container_name: readarr
-        image: lscr.io/linuxserver/readarr:develop
-        restart: unless-stopped
-        depends_on:
-            - "diun"
-            - "container-mon"
-        labels:
-            - "containermon.enable=true"
-            - "diun.enable=true"
-        ports:
-            - "8787:8787"
-        volumes:
-            - "${SERVICE_DIR}/readarr:/config"
-            - "${DATA_DIR}:/data"
-        healthcheck:
-            test: curl --fail http://localhost:8787 || exit 1
-            interval: 60s
-            retries: 5
-            start_period: 60s
-            timeout: 10s
-        environment:
-            - "PGID=${PGID}"
-            - "PUID=${PUID}"
-            - "TZ=${TZ}"
-            - "UMASK=${UMASK}"
     jellyseerr:
         container_name: jellyseerr
         image: fallenbagel/jellyseerr:latest
@@ -368,13 +340,13 @@ services:
             - "diun"
             - "container-mon"
         labels:
-            - "containermon.enable=false"
+            - "containermon.enable=true"
             - "diun.enable=true"
         ports:
             - "5055:5055"
         volumes:
             - "${SERVICE_DIR}/jellyseerr:/app/config"
-        #healthcheck:   wget calls result in zombie processes
+        #healthcheck:
         #     test: wget http://localhost:5055/api/v1/status -qO /dev/null || exit 1
         #     interval: 60s
         #     retries: 5
@@ -384,26 +356,22 @@ services:
             - "LOG_LEVEL=info"
             - "TZ=${TZ}"
             - "JELLYFIN_TYPE=emby"
-    heimdall:
-        container_name: heimdall
-        image: lscr.io/linuxserver/heimdall:latest
+    homepage:
+        container_name: homepage
+        image: ghcr.io/benphelps/homepage:latest
         restart: unless-stopped
         depends_on:
             - "diun"
             - "container-mon"
         labels:
-            - "containermon.enable=true"
+            - "containermon.enable=false"
             - "diun.enable=true"
         ports:
-            - 7776:80
+            - "3333:3000"
         volumes:
-            - "${SERVICE_DIR}/heimdall:/config"
-        healthcheck:
-            test: curl --fail http://localhost:80 || exit 1
-            interval: 60s
-            retries: 5
-            start_period: 60s
-            timeout: 10s
+            - "/mnt/docker/services/homepage:/app/config"
+            - "/mnt/docker/services/homepage/icons:/app/public/icons"
+            - "/var/run/docker.sock:/var/run/docker.sock"
         environment:
             - "PGID=${PGID}"
             - "PUID=${PUID}"
@@ -469,20 +437,3 @@ services:
             - "DUCKDNSTOKEN=${DUCKDNS_TOKEN}"
             - "EMAIL=${SWAG_EMAIL}"
             - "EXTRA_DOMAINS=${SWAG_EXTRA_DOMAINS}"
-    adguardhome:
-        container_name: adguardhome
-        image: adguard/adguardhome:latest
-        restart: unless-stopped
-        depends_on:
-            - "diun"
-        labels:
-            - "containermon.enable=false"
-            - "diun.enable=true"
-        ports:
-            - "53:53/tcp"
-            - "53:53/udp"
-            - "3000:3000/tcp"
-            - "9080:9080/tcp"
-        volumes:
-            - "${SERVICE_DIR}/adguardhome/work:/opt/adguardhome/work"
-            - "${SERVICE_DIR}/adguardhome/conf:/opt/adguardhome/conf"
