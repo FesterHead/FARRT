@@ -358,7 +358,7 @@ services:
             - "JELLYFIN_TYPE=emby"
     homepage:
         container_name: homepage
-        image: ghcr.io/benphelps/homepage:latest
+        image: ghcr.io/gethomepage/homepage:latest
         restart: unless-stopped
         depends_on:
             - "diun"
