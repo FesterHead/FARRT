@@ -20,7 +20,6 @@ services=("bazarr" \
           "flaresolverr" \
           "homepage" \
           "jellyseerr" \
-          "plex" \
           "prowlarr" \
           "radarr" \
           "sabnzbd" \

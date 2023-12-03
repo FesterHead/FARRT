@@ -8,9 +8,22 @@ Install notes...  works on my machine.
 ```shell
 Host farrt
     StrictHostKeyChecking no
+    User <user>
+    IdentityFile <path-to-private-key>
     UserKnownHostsFile NUL # for windows. w h y c a n t w e h a v e o n e m o r e l ?
     # UserKnownHostsFile /dev/null # for linux
 ```
+
+Adjust `<user>` and `<path-to-private-key>` to your setup.  Or remove to enter password every login.  Using `IdentityFile` requires the public key to be on the farrt box of course.  Search Google or ask ChatGPT for help.
+
+It may be covenient to add hosts entries to help with local DNS resolution.  Adjust IP to your setup.  For example:
+```
+192.168.86.50 farrt
+```
+
+* Windows -> `C:\Windows\System32\drivers\etc\hosts`
+* Linux -> `/etc/hosts`
+
 # Docker testing
 ## Initial installation, configuration, and testing done with Ubuntu server to Raspberry Pi 4
 * Follow these instructions to flash an SD card:
@@ -20,7 +33,12 @@ Host farrt
 * Wait five minutes before connecting.
 * `ssh <user>@farrt`
 
-### vi `update.sh`, then chmod 744, and run `./update.sh`
+## Final installation on a [Beelink S12 Pro Mini PC](https://www.amazon.com/gp/product/B0BVLS7ZHP)
+* Installed with same Ubuntu server version as Rasperry Pi
+* Logged into pre-installed Windows to register Windows license then installed Ubuntu.
+* When I was done fiddling with a service on the Raspberry Pi I just zipped up `/mnt/docker/services/<name>` and moved to Mini PC.  Easy.
+
+### Go to your home directoy, then vi `update.sh`, paste in this helper update sacript, then chmod 744, and run `./update.sh`.
 ```shell
 #!/bin/bash
 
@@ -76,7 +94,7 @@ echo 'Pau.  Have a nice day.'
 echo -e $TEXT_RESET
 ```
 
-## Add a Samba network drive:
+## Add a Samba network drive to the Synology NAS:
 
 1. Install the necessary packages:
 ```shell
@@ -111,7 +129,7 @@ sudo chmod 600 /etc/samba/credentials
 sudo vi /etc/fstab
 ```
 
-8. Add the following to define the mount point for the Samba data network drive:
+8. Add the following to define the mount point for the Samba data network drive, edit `NAS-NAME-OR-IP`:
 ```shell
 //NAS-NAME-OR-IP/data /mnt/data cifs credentials=/etc/samba/credentials,iocharset=utf8,gid=1003,uid=1000,file_mode=0777,dir_mode=0777 0 0
 ```
@@ -130,11 +148,13 @@ Create the Docker app directory and folders and assign privs to your user and gr
 sudo mkdir /mnt/docker /mnt/docker/services && cd /mnt/docker/services
 ```
 ```shell
-sudo mkdir bazarr diun duckdns emby homepage jellyseerr plex prowlarr radarr sabnzbd sonarr swag transmission-openvpn transmission-rush
+sudo mkdir bazarr diun duckdns emby homepage jellyseerr prowlarr radarr sabnzbd sonarr swag transmission-openvpn transmission-rush
 ```
 ```shell
 sudo chown -R <user>:<group> /mnt/docker/services
 ```
+
+We do not put the Docker services folders on the NAS.  Some services may behave oddly.
 
 Need a username and group?  Try use `festerhead:iscool`, can't go wrong.
 
@@ -246,7 +266,7 @@ sudo docker-compose --version
 Docker Compose version v2.18.1
 ```
 
-Create your own .env file.  It should be in the same folder as docker-compose.yaml. My file is not committed to this respository. Here is what I use with sensitive data redacted:
+Create your own .env file.  It should be in the same folder as docker-compose.yaml such as `/mnt/projects/FARRT`. My file is not committed to this respository. When you see something like `${SERVICE_DIR}` in `docker-compose.yaml` the reference is in this `.env` file.  Here is what I use with sensitive data redacted:
 ```shell
 # OpenVPN Configuration
 # Figure out what works best for you.  PIA for life amen.
@@ -261,8 +281,8 @@ LOCAL_NETWORK=192.168.86.0/24
 
 # Directories for container configs and media data
 # Figure out what works best for you
-CONF_DIR=/mnt/docker    # This should be a folder on the host; do not use a NAS mount
-DATA_DIR=/mnt/data      # This can/should be a NFS or Samba NAS mount
+SERVCICE_DIR=/mnt/docker/services    # This should be a folder on the host; do not use a NAS mount
+DATA_DIR=/mnt/data                   # This can/should be a NFS or Samba NAS mount
 
 # User/Group ID, umask, and timezone for almost all containers
 # Figure out what works best for you
@@ -293,6 +313,8 @@ SWAG_EXTRA_DOMAINS=******
 docker-compose pull <name>
 docker-compose up -d <name>
 ```
+
+Highly recommend to install one service at a time.
 
 See also: `helpful-commands.md`
 
@@ -336,3 +358,8 @@ In order to have a portable configuration, recommend to use the following:
 * `http://fart:<port>` to connect to services from LAN IPs
 
 Moving one, more, or all Docker services to a different machine on the same LAN IP is 'easy'.  Make a zip of `/mnt/docker/services` and unzip on the new target using the same path.
+
+# Helpful script to update a Docker service
+See `dc-update.sh` for a useful script to update Docker services.
+
+I use `diun` to post a notice to Slack every Wednesday 3pm server time for all containers that need an update.  It's a nice wrapper for `docker-compose pull` and `docker-compose up -d`.  I have no desire to automate service updating.

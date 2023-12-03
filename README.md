@@ -5,8 +5,7 @@ Some guides I used to determine this setup:
 - https://trash-guides.info/Hardlinks/Hardlinks-and-Instant-Moves/
 - https://trash-guides.info/Hardlinks/How-to-setup-for/Docker/
 
-This is what I use for a folder strategy.  Your mileage may vary.
-Synology NAS data mount:
+This is what I use for a folder strategy.  Your mileage may vary.  Synology NAS data mount:
 ```shell
 data
 ├───media
@@ -18,7 +17,7 @@ data
 ├───torrents-rush
 │   ├───complete
 │   ├───incomplete
-│   └───torrents   # torrent backup, reload later to re-seed
+│   └───torrents   # torrent backup, use to reload torrents later to re-seed
 ├───torrents-vpn
 │   ├───complete
 │   └───incomplete
@@ -37,7 +36,6 @@ Folder structure on the host computer for service data and this Github repo.
 │       ├── emby
 │       ├── homepage
 │       ├── jellyseerr
-│       ├── plex
 │       ├── prowlarr
 │       ├── radarr
 │       ├── sabnzbd
@@ -99,14 +97,6 @@ Used for Rush torrenting from http://www.dimeadozen.org/. Port forward 51413 fro
 
 SSL is managed by the swag container.
 
-## plex:
-- https://hub.docker.com/r/linuxserver/plex
-- https://docs.linuxserver.io/images/docker-plex
-- https://github.com/linuxserver/docker-plex
-- https://trash-guides.info/Plex/
-
-Including here but not planning on loading it up, maybe later.
-
 ## bazarr:
 - https://hub.docker.com/r/linuxserver/bazarr
 - https://docs.linuxserver.io/images/docker-bazarr
@@ -129,15 +119,14 @@ Including here but not planning on loading it up, maybe later.
 - https://hub.docker.com/r/fallenbagel/jellyseerr
 - https://github.com/Fallenbagel/jellyseerr
 
-## heimdall:
-https://hub.docker.com/r/linuxserver/heimdall/
-https://docs.linuxserver.io/images/docker-heimdall
-https://github.com/linuxserver/Heimdall
+## homepage:
+- https://gethomepage.dev/main/installation/docker/
+- https://github.com/gethomepage/homepage
 
 ## duckdns:
-https://hub.docker.com/r/linuxserver/duckdns
-https://docs.linuxserver.io/images/docker-duckdns
-https://github.com/linuxserver/docker-duckdns
+- https://hub.docker.com/r/linuxserver/duckdns
+- https://docs.linuxserver.io/images/docker-duckdns
+- https://github.com/linuxserver/docker-duckdns
 
 ## swag:
 - https://hub.docker.com/r/linuxserver/swag

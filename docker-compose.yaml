@@ -13,12 +13,12 @@ services:
         volumes:
             - "${SERVICE_DIR}/diun:/data"
             - "/var/run/docker.sock:/var/run/docker.sock"
-        #healthcheck:
-        #    test: wget https://${SWAG_URL} -qO /dev/null || exit 1
-        #    interval: 60s
-        #    retries: 5
-        #    start_period: 60s
-        #    timeout: 10s
+        #healthcheck:  Not monitoring at this time.  wget results in too many zombie processes.
+        #    test: 
+        #    interval: 
+        #    retries: 
+        #    start_period: 
+        #    timeout: 
         environment:
             - "TZ=${TZ}"
             - "LOG_LEVEL=info"
@@ -40,12 +40,12 @@ services:
             - "diun.enable=true"
         volumes:
             - "/var/run/docker.sock:/var/run/docker.sock"
-        #healthcheck:
-        #    test: wget https://${SWAG_URL} -qO /dev/null || exit 1
-        #    interval: 60s
-        #    retries: 5
-        #    start_period: 60s
-        #    timeout: 10s
+        #healthcheck:  Not monitoring at this time.  wget results in too many zombie processes.
+        #    test: 
+        #    interval: 
+        #    retries: 
+        #    start_period: 
+        #    timeout: 
         environment:
             - "CONTAINERMON_FAIL_LIMIT=1"
             - "CONTAINERMON_CRON=*/5 * * * *"
@@ -214,8 +214,8 @@ services:
             - "containermon.enable=true"
             - "diun.enable=true"
         ports:
-            - "8096:8096"     # http port
-            - "8920:8920"     # https port
+            - "8096:8096"
+            - "8920:8920"
         volumes:
             - "${SERVICE_DIR}/emby:/config"
             - "${DATA_DIR}:/data"
@@ -233,28 +233,6 @@ services:
             - "UMASK=${UMASK}"
         devices:
             - "/dev/dri:/dev/dri"
-    plex:
-        container_name: plex
-        image: lscr.io/linuxserver/plex:latest
-        network_mode: host
-        restart: unless-stopped
-        depends_on:
-            - "diun"
-            - "container-mon"
-        labels:
-            - "containermon.enable=false"     # Not monitoring at this time
-            - "diun.enable=true"
-        ports:
-            - "32400:32400"
-        volumes:
-            - "${SERVICE_DIR}/plex:/config"
-            - "${DATA_DIR}:/data"
-        environment:
-            - "PGID=${PGID}"
-            - "PUID=${PUID}"
-            - "TZ=${TZ}"
-            - "UMASK=${UMASK}"
-            - "VERSION=docker"
     bazarr:
         container_name: bazarr
         image: lscr.io/linuxserver/bazarr:latest
@@ -346,12 +324,12 @@ services:
             - "5055:5055"
         volumes:
             - "${SERVICE_DIR}/jellyseerr:/app/config"
-        #healthcheck:
-        #     test: wget http://localhost:5055/api/v1/status -qO /dev/null || exit 1
-        #     interval: 60s
-        #     retries: 5
-        #     start_period: 60s
-        #     timeout: 10s
+        #healthcheck:  Not monitoring at this time.  wget results in too many zombie processes.
+        #    test: 
+        #    interval: 
+        #    retries: 
+        #    start_period: 
+        #    timeout: 
         environment:
             - "LOG_LEVEL=info"
             - "TZ=${TZ}"
@@ -402,7 +380,7 @@ services:
             - "UMASK=${UMASK}"
             - "SUBDOMAINS=${DUCKDNS_SUBDOMAINS}"
             - "TOKEN=${DUCKDNS_TOKEN}"
-            - "LOG_FILE=false" #optional
+            - "LOG_FILE=false"
     swag:
         container_name: swag
         image: lscr.io/linuxserver/swag:latest
