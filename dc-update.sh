@@ -12,6 +12,27 @@ function print_array_item() {
   printf "%2d = %s\n" $index $value
 }
 
+function do_update() {
+  cd /mnt/projects/FARRT
+
+  echo -e $TEXT_YELLOW
+  echo "-----------------------------------------------"
+  echo "Starting docker-compose pull for $1 ..."
+  echo -e $TEXT_RESET
+  docker-compose pull $1
+
+  echo -e $TEXT_YELLOW
+  echo "-----------------------------------------------"
+  echo "Starting docker-compose up -d for $1 ..."
+  echo -e $TEXT_RESET
+  docker-compose up -d $1
+
+  echo -e $TEXT_GREEN
+  echo "Pau."
+  echo -e $TEXT_RESET
+  echo ""  
+}
+
 services=("bazarr" \
           "container-mon" \
           "diun" \
@@ -25,36 +46,23 @@ services=("bazarr" \
           "sabnzbd" \
           "sonarr" \
           "swag" \
-          "transmission-openvpn" \
           "transmission-rush")
 
 for index in "${!services[@]}"; do
   print_array_item "$index" "${services[$index]}"
 done
 
-echo "Enter system # to pull and update:"
+echo "Enter system # to pull and update (or 'all'):"
 read index
 
 value="${services[$index]}"
 
-if [[ "$index" -ge 0 && "$index" -lt "${#services[@]}" ]]; then
-  cd /mnt/projects/FARRT
-
-  echo -e $TEXT_YELLOW
-  echo "-----------------------------------------------"
-  echo "Starting docker-compose pull for $value ..."
-  echo -e $TEXT_RESET
-  docker-compose pull $value
-
-  echo -e $TEXT_YELLOW
-  echo "-----------------------------------------------"
-  echo "Starting docker-compose up -d for $value ..."
-  echo -e $TEXT_RESET
-  docker-compose up -d $value
-
-  echo -e $TEXT_GREEN
-  echo "Pau.  Have a nice day."
-  echo -e $TEXT_RESET
+if [[ "$index" == "all" ]]; then
+   for index2 in "${!services[@]}"; do
+     do_update ${services[$index2]}
+   done
+elif [[ "$index" -ge 0 && "$index" -lt "${#services[@]}" ]]; then
+  do_update ${services[$index]}
 else
   echo "Bad input - try again"
   exit 1;
