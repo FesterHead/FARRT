@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.5] 2024-01-27
+- Added script to convert mkv to mp4
+- Can run manually or via crontab e.g. `0 13 * * 0 <directory>/convert-mkv-to-mp4/convert-mkv-to-mp4.sh`
+- MP4 is just my personal preference
+
 ## [1.0.4] 2023-12-03
 - Removed Plex
 - Tuned install and README to improve clarity
