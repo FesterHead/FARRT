@@ -47,6 +47,7 @@ services=("bazarr" \
           "flaresolverr" \
           "homepage" \
           "jellyseerr" \
+          "ombi" \
           "prowlarr" \
           "radarr" \
           "sabnzbd" \

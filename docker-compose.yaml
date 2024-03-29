@@ -334,6 +334,25 @@ services:
             - "LOG_LEVEL=info"
             - "TZ=${TZ}"
             - "JELLYFIN_TYPE=emby"
+    ombi:
+        container_name: ombi
+        image: lscr.io/linuxserver/ombi:latest
+        restart: unless-stopped
+        depends_on:
+            - "diun"
+            - "container-mon"
+        labels:
+            - "containermon.enable=true"
+            - "diun.enable=true"
+        ports:
+            - 3579:3579
+        volumes:
+            - "${SERVICE_DIR}/ombi:/app/config"
+        environment:
+            - "PGID=${PGID}"
+            - "PUID=${PUID}"
+            - "TZ=${TZ}"
+            - "UMASK=${UMASK}"
     homepage:
         container_name: homepage
         image: ghcr.io/gethomepage/homepage:latest
