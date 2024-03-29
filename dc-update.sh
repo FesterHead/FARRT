@@ -27,10 +27,16 @@ function do_update() {
   echo -e $TEXT_RESET
   docker-compose up -d $1
 
+  echo -e $TEXT_YELLOW
+  echo "-----------------------------------------------"
+  echo "Starting docker image prune --force ..."
+  echo -e $TEXT_RESET
+  docker image prune --force
+
   echo -e $TEXT_GREEN
   echo "Pau."
   echo -e $TEXT_RESET
-  echo ""  
+  echo ""
 }
 
 services=("bazarr" \
