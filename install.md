@@ -281,7 +281,7 @@ LOCAL_NETWORK=192.168.86.0/24
 
 # Directories for container configs and media data
 # Figure out what works best for you
-SERVCICE_DIR=/mnt/docker/services    # This should be a folder on the host; do not use a NAS mount
+SERVICE_DIR=/mnt/docker/services     # This should be a folder on the host; do not use a NAS mount
 DATA_DIR=/mnt/data                   # This can/should be a NFS or Samba NAS mount
 
 # User/Group ID, umask, and timezone for almost all containers
