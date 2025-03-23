@@ -51,8 +51,7 @@ services=("bazarr" \
           "radarr" \
           "sabnzbd" \
           "sonarr" \
-          "swag" \
-          "transmission-rush")
+          "swag")
 
 for index in "${!services[@]}"; do
   print_array_item "$index" "${services[$index]}"

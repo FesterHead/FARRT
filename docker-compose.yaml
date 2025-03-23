@@ -102,7 +102,7 @@ services:
             - "TRANSMISSION_RPC_PORT=9099"
     transmission-rush:
         container_name: transmission-rush
-        image: lscr.io/linuxserver/transmission:latest
+        image: lscr.io/linuxserver/transmission:4.0.5
         restart: unless-stopped
         depends_on:
             - "diun"
@@ -355,6 +355,7 @@ services:
             - "PUID=${PUID}"
             - "TZ=${TZ}"
             - "UMASK=${UMASK}"
+            - "HOMEPAGE_ALLOWED_HOSTS=farrt:3333"
     duckdns:
         container_name: duckdns
         image: lscr.io/linuxserver/duckdns:latest
