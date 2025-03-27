@@ -29,7 +29,7 @@ function do_update() {
 
   echo -e $TEXT_YELLOW
   echo "-----------------------------------------------"
-  echo "Starting docker image prune --force ..."
+  echo "Starting docker image prune --all --force ..."
   echo -e $TEXT_RESET
   docker image prune --force
 
@@ -40,6 +40,7 @@ function do_update() {
 }
 
 services=("bazarr" \
+	  "calibre-web-automated" \
           "container-mon" \
           "diun" \
           "duckdns" \

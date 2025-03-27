@@ -432,12 +432,12 @@ services:
             - "${SERVICE_DIR}/calibre-web-automated:/config"
             - "${DATA_DIR}/media/books/incoming:/cwa-book-ingest"
             - "${SERVICE_DIR}/calibre-library:/calibre-library"
-        #healthcheck:
-        #    test: curl --fail http://localhost:8083 || exit 1
-        #    interval: 60s
-        #    retries: 5
-        #    start_period: 60s
-        #    timeout: 10s
+        healthcheck:
+            test: curl --fail http://localhost:8083 || exit 1
+            interval: 60s
+            retries: 5
+            start_period: 60s
+            timeout: 10s
         environment:
             - "PGID=${PGID}"
             - "PUID=${PUID}"
